@@ -1,0 +1,16 @@
+{
+  "name": "Tiny Swords: Arena Survivor",
+  "short_name": "Tiny Swords",
+  "start_url": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#141a24",
+  "theme_color": "#141a24",
+  "icons": [
+    {
+      "src": "TinySwords.icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
