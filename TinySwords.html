@@ -19,7 +19,10 @@ html, body {
 	height: 100%;
 	overflow: hidden;
 	position: fixed;
-	background-color: #0d1117;
+	background-color: #000;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
 body {
@@ -30,11 +33,19 @@ body {
 	user-select: none;
 }
 
+#canvas-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+}
+
 #canvas {
 	display: block;
-	width: 100vw;
-	height: 100vh;
-	object-fit: contain;
+	margin: auto;
+	box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
 }
 
 #canvas:focus {
@@ -167,9 +178,11 @@ body {
 		<link rel="apple-touch-icon" href="TinySwords.apple-touch-icon.png"/>
 	</head>
 	<body>
-		<canvas id="canvas">
-			Your browser does not support the canvas tag.
-		</canvas>
+		<div id="canvas-container">
+			<canvas id="canvas" width="1280" height="720">
+				Your browser does not support the canvas tag.
+			</canvas>
+		</div>
 
 		<noscript>
 			Your browser does not support JavaScript.
@@ -198,7 +211,40 @@ body {
 
 		<script src="TinySwords.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"TinySwords","experimentalVK":false,"fileSizes":{"TinySwords.pck":31083668,"TinySwords.wasm":37902138},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+// Canvas size manager: Enforces pristine 16:9 aspect ratio so buttons and headers never get cut off
+function fitCanvasToScreen() {
+	const canvas = document.getElementById('canvas');
+	if (!canvas) return;
+
+	const targetRatio = 16 / 9; // 1280x720 base design
+	const winW = window.innerWidth;
+	const winH = window.innerHeight;
+	const winRatio = winW / winH;
+
+	let w, h;
+	if (winRatio > targetRatio) {
+		// Screen is wider than 16:9 (e.g. mobile 20:9 or ultrawide desktop)
+		h = winH;
+		w = Math.floor(winH * targetRatio);
+	} else {
+		// Screen is taller than 16:9
+		w = winW;
+		h = Math.floor(winW / targetRatio);
+	}
+
+	const dpr = Math.min(window.devicePixelRatio || 1, 2);
+	canvas.width = Math.floor(w * dpr);
+	canvas.height = Math.floor(h * dpr);
+	canvas.style.width = w + 'px';
+	canvas.style.height = h + 'px';
+}
+
+fitCanvasToScreen();
+window.addEventListener('resize', fitCanvasToScreen);
+window.addEventListener('orientationchange', fitCanvasToScreen);
+
+// canvasResizePolicy: 0 allows our fitCanvasToScreen function to strictly preserve 16:9 without Godot cropping buttons
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":0,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"TinySwords","experimentalVK":false,"fileSizes":{"TinySwords.pck":31083668,"TinySwords.wasm":37902138},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
@@ -208,7 +254,6 @@ const engine = new Engine(GODOT_CONFIG);
 	const statusNotice = document.getElementById('status-notice');
 	const fsBtn = document.getElementById('fullscreen-btn');
 
-	// Show Fullscreen button on touch devices for maximum playability area
 	const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 	if (isTouch) {
 		fsBtn.style.display = 'block';
@@ -223,6 +268,7 @@ const engine = new Engine(GODOT_CONFIG);
 		if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
 			if (requestFullscreen) {
 				requestFullscreen.call(docEl).then(() => {
+					fitCanvasToScreen();
 					if (screen.orientation && screen.orientation.lock) {
 						screen.orientation.lock('landscape').catch(() => {});
 					}
@@ -239,7 +285,6 @@ const engine = new Engine(GODOT_CONFIG);
 
 	fsBtn.addEventListener('click', toggleFullScreen);
 
-	// Try locking orientation on first touch
 	window.addEventListener('touchstart', function () {
 		if (screen.orientation && screen.orientation.lock) {
 			screen.orientation.lock('landscape').catch(() => {});
@@ -256,6 +301,7 @@ const engine = new Engine(GODOT_CONFIG);
 		if (mode === 'hidden') {
 			statusOverlay.remove();
 			initializing = false;
+			fitCanvasToScreen();
 			return;
 		}
 		statusOverlay.style.visibility = 'visible';
