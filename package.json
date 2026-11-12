@@ -1,0 +1,16 @@
+{
+  "name": "tiny-swords-web",
+  "version": "1.0.0",
+  "description": "Tiny Swords: Arena Survivor — Web Game & Serverless Leaderboard API",
+  "private": true,
+  "main": "TinySwords.html",
+  "scripts": {
+    "start": "python3 serve.py"
+  },
+  "dependencies": {
+    "mongodb": "^6.5.0"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}
